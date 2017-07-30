@@ -24,22 +24,46 @@ public class NetworkUtils {
     private final static String PATH_RESOURCES = "movie";
     private final static String PARAM_API_KEY = "api_key";
 
-    public static URL buildUrl(String category) {
+    private static URL buildUrl(String uri) {
+        URL url = null;
+        try {
+            url = new URL(uri);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        return url;
+    }
+
+    public static URL buildMovieUrl(String category) {
         Uri builtUri = Uri.parse(TMDB_BASE_URL).buildUpon()
                 .appendPath(PATH_VERSION)
                 .appendPath(PATH_RESOURCES)
                 .appendPath(category)
                 .appendQueryParameter(PARAM_API_KEY, TMDB_API_KEY)
                 .build();
+        return buildUrl(builtUri.toString());
+    }
 
-        URL url = null;
-        try {
-            url = new URL(builtUri.toString());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
+    public static URL buildReviewUrl(String id) {
+        Uri builtUri = Uri.parse(TMDB_BASE_URL).buildUpon()
+                .appendPath(PATH_VERSION)
+                .appendPath(PATH_RESOURCES)
+                .appendPath(id)
+                .appendPath("reviews")
+                .appendQueryParameter(PARAM_API_KEY, TMDB_API_KEY)
+                .build();
+        return buildUrl(builtUri.toString());
+    }
 
-        return url;
+    public static URL buildTrailerUrl(String id) {
+        Uri builtUri = Uri.parse(TMDB_BASE_URL).buildUpon()
+                .appendPath(PATH_VERSION)
+                .appendPath(PATH_RESOURCES)
+                .appendPath(id)
+                .appendPath("videos")
+                .appendQueryParameter(PARAM_API_KEY, TMDB_API_KEY)
+                .build();
+        return buildUrl(builtUri.toString());
     }
 
     public static String getResponseFromHttpUrl(URL url) throws IOException {
@@ -62,4 +86,3 @@ public class NetworkUtils {
     }
 
 }
-

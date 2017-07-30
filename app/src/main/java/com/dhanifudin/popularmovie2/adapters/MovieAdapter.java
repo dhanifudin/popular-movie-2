@@ -1,4 +1,4 @@
-package com.dhanifudin.popularmovie2;
+package com.dhanifudin.popularmovie2.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.dhanifudin.popularmovie2.R;
 import com.dhanifudin.popularmovie2.model.Movie;
 import com.squareup.picasso.Picasso;
 
