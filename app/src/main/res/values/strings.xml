@@ -7,4 +7,5 @@
     <string name="action_popular">Popular</string>
     <string name="action_top_rated">Top Rated</string>
     <string name="button_favorite">Mark as Favorite</string>
+    <string name="trailer_preview">Trailer Preview</string>
 </resources>

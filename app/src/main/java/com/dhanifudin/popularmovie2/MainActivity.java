@@ -7,6 +7,8 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,17 +21,22 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dhanifudin.popularmovie2.adapters.MovieAdapter;
 import com.dhanifudin.popularmovie2.model.Movie;
 import com.dhanifudin.popularmovie2.utilities.JsonUtils;
+import com.dhanifudin.popularmovie2.utilities.MovieTaskLoader;
 import com.dhanifudin.popularmovie2.utilities.NetworkUtils;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 
-public class MainActivity extends AppCompatActivity implements MovieAdapter.MovieAdapterOnClickHandler {
+public class MainActivity extends AppCompatActivity
+        implements MovieAdapter.MovieAdapterOnClickHandler,
+        LoaderManager.LoaderCallbacks<String> {
 
     private RecyclerView moviesView;
     private MovieAdapter movieAdapter;
@@ -120,7 +127,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         if (isOnline()) {
             Toast.makeText(this, "Requesting " + category + " movies.", Toast.LENGTH_LONG)
                     .show();
-            new TheMovieTask().execute(category);
+//            new TheMovieTask().execute(category);
+            URL url = NetworkUtils.buildMovieUrl(category);
+            Bundle bundle = new Bundle();
+            bundle.putString(Constants.URL, url.toString());
+
+            LoaderManager loaderManager = getSupportLoaderManager();
+            Loader<String> loader = loaderManager.getLoader(Constants.LOADER_MOVIE);
+            if (loader == null)
+                loaderManager.initLoader(Constants.LOADER_MOVIE, bundle, this);
+            else
+                loaderManager.restartLoader(Constants.LOADER_MOVIE, bundle, this);
+            loadingProgress.setVisibility(View.VISIBLE);
         } else {
             Toast.makeText(this, getString(R.string.connection_error), Toast.LENGTH_LONG)
                     .show();
@@ -144,38 +162,61 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Movi
         startActivity(detailIntent);
     }
 
-    class TheMovieTask extends AsyncTask<String, Void, Movie[]> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            loadingProgress.setVisibility(View.VISIBLE);
-        }
+    @Override
+    public Loader<String> onCreateLoader(int id, Bundle args) {
+        return new MovieTaskLoader(this, args);
+    }
 
-        @Override
-        protected Movie[] doInBackground(String... params) {
-            String category = params[0];
-            Movie[] movies = null;
-            try {
-                URL requestUrl = NetworkUtils.buildUrl(category);
-                String response = NetworkUtils.getResponseFromHttpUrl(requestUrl);
-                movies = JsonUtils.getMovies(response);
-            } catch (IOException | JSONException e) {
-                e.printStackTrace();
-            }
-            return movies;
+    @Override
+    public void onLoadFinished(Loader<String> loader, String data) {
+        loadingProgress.setVisibility(View.INVISIBLE);
+        try {
+            movies = JsonUtils.getMovies(data);
+            showMovieDataView();
+            movieAdapter.setMovies(movies);
+        } catch (JSONException e) {
+            showErrorMessage();
+            e.printStackTrace();
         }
+    }
 
-        @Override
-        protected void onPostExecute(Movie[] moviesData) {
-            loadingProgress.setVisibility(View.INVISIBLE);
-            if (moviesData != null) {
-                movies = moviesData;
-                showMovieDataView();
-                movieAdapter.setMovies(movies);
-            } else {
-                showErrorMessage();
-            }
-        }
+    @Override
+    public void onLoaderReset(Loader<String> loader) {
 
     }
+
+//    class TheMovieTask extends AsyncTask<String, Void, Movie[]> {
+//        @Override
+//        protected void onPreExecute() {
+//            super.onPreExecute();
+//            loadingProgress.setVisibility(View.VISIBLE);
+//        }
+//
+//        @Override
+//        protected Movie[] doInBackground(String... params) {
+//            String category = params[0];
+//            Movie[] movies = null;
+//            try {
+//                URL requestUrl = NetworkUtils.buildUrl(category);
+//                String response = NetworkUtils.getResponseFromHttpUrl(requestUrl);
+//                movies = JsonUtils.getMovies(response);
+//            } catch (IOException | JSONException e) {
+//                e.printStackTrace();
+//            }
+//            return movies;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Movie[] moviesData) {
+//            loadingProgress.setVisibility(View.INVISIBLE);
+//            if (moviesData != null) {
+//                movies = moviesData;
+//                showMovieDataView();
+//                movieAdapter.setMovies(movies);
+//            } else {
+//                showErrorMessage();
+//            }
+//        }
+//
+//    }
 }

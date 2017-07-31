@@ -65,6 +65,14 @@ public class Trailer implements Parcelable {
         this.type = type;
     }
 
+    public String getThumbnailMovie() {
+        return String.format("https://img.youtube.com/vi/%s/default.jpg", key);
+    }
+
+    public String getTrailerMovie() {
+        return String.format("https://www.youtube.com/watch?v=%s", key);
+    }
+
     @Override
     public int describeContents() {
         return 0;
