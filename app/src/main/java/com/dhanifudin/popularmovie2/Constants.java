@@ -5,9 +5,16 @@ package com.dhanifudin.popularmovie2;
  */
 
 public class Constants {
-    static final String MOVIES = "movies";
-    static final String MOVIE = "movie";
-    static final String CATEGORY = "category";
-    static final String CATEGORY_POPULAR = "popular";
-    static final String CATEGORY_TOP_RATED = "top_rated";
+    public static final String MOVIES = "movies";
+    public static final String MOVIE = "movie";
+    public static final String CATEGORY = "category";
+    public static final String CATEGORY_POPULAR = "popular";
+    public static final String CATEGORY_TOP_RATED = "top_rated";
+
+    public static final String URL = "url";
+
+    public static final int LOADER_MOVIE = 100;
+    public static final int LOADER_FAVORITE = 101;
+    public static final int LOADER_TRAILER = 102;
+    public static final int LOADER_REVIEW = 103;
 }
