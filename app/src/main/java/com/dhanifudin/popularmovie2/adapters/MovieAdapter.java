@@ -12,13 +12,15 @@ import com.dhanifudin.popularmovie2.R;
 import com.dhanifudin.popularmovie2.model.Movie;
 import com.squareup.picasso.Picasso;
 
+import java.util.List;
+
 /**
  * Created by dhanifudin on 7/4/17.
  */
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
-    private Movie[] movies;
+    private List<Movie> movies;
 
     private final MovieAdapterOnClickHandler clickHandler;
 
@@ -30,7 +32,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         this.clickHandler = clickHandler;
     }
 
-    public void setMovies(Movie[] movies) {
+    public void setMovies(List<Movie> movies) {
         this.movies = movies;
         notifyDataSetChanged();
     }
@@ -45,14 +47,13 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     @Override
     public void onBindViewHolder(MovieViewHolder holder, int position) {
-        Movie movie = movies[position];
+        Movie movie = movies.get(position);
         holder.bind(movie);
     }
 
     @Override
     public int getItemCount() {
-        if (movies == null) return 0;
-        return movies.length;
+        return (movies != null) ? movies.size() : 0;
     }
 
     class MovieViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -70,7 +71,8 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
         void bind(Movie movie) {
             Picasso.with(context)
-                    .load(movie.getPosterPath())
+                    .load(movie.getPosterUrl())
+                    .placeholder(R.drawable.placeholder)
                     .into(movieImage);
             titleText.setText(movie.getTitle());
         }
@@ -78,7 +80,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         @Override
         public void onClick(View v) {
             int position = getAdapterPosition();
-            Movie movie = movies[position];
+            Movie movie = movies.get(position);
             clickHandler.onClick(movie);
         }
     }

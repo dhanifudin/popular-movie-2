@@ -14,6 +14,7 @@ public class Constants {
     public static final String URL = "url";
 
     public static final int LOADER_MOVIE = 100;
-    public static final int LOADER_TRAILER = 101;
-    public static final int LOADER_REVIEW = 102;
+    public static final int LOADER_FAVORITE = 101;
+    public static final int LOADER_TRAILER = 102;
+    public static final int LOADER_REVIEW = 103;
 }

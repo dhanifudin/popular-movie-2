@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.v4.app.LoaderManager;
@@ -23,20 +22,21 @@ import android.widget.Toast;
 
 import com.dhanifudin.popularmovie2.adapters.MovieAdapter;
 import com.dhanifudin.popularmovie2.model.Movie;
+import com.dhanifudin.popularmovie2.tasks.FavoritesTaskLoader;
+import com.dhanifudin.popularmovie2.tasks.MovieTaskLoader;
 import com.dhanifudin.popularmovie2.utilities.JsonUtils;
-import com.dhanifudin.popularmovie2.utilities.MovieTaskLoader;
+import com.dhanifudin.popularmovie2.tasks.ApiTask;
 import com.dhanifudin.popularmovie2.utilities.NetworkUtils;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
-        implements MovieAdapter.MovieAdapterOnClickHandler,
-        LoaderManager.LoaderCallbacks<String> {
+        implements MovieAdapter.MovieAdapterOnClickHandler {
 
     private RecyclerView moviesView;
     private MovieAdapter movieAdapter;
@@ -44,9 +44,11 @@ public class MainActivity extends AppCompatActivity
     private TextView errorMessageText;
     private ProgressBar loadingProgress;
 
-    private Movie[] movies;
+    private ArrayList<Movie> movies;
 
     private String category;
+    private MovieTaskLoader movieTaskLoader;
+    private FavoritesTaskLoader favoritesTaskLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,14 +65,17 @@ public class MainActivity extends AppCompatActivity
         movieAdapter.setMovies(movies);
         moviesView.setAdapter(movieAdapter);
 
+        movieTaskLoader = new MovieTaskLoader(this, movieAdapter);
+        favoritesTaskLoader = new FavoritesTaskLoader(this, movieAdapter);
+
         if (savedInstanceState == null) {
             category = Constants.CATEGORY_POPULAR;
             requestMovies();
         } else {
             category = savedInstanceState.getString(Constants.CATEGORY);
-            Parcelable[] parcelableMovies = savedInstanceState.getParcelableArray(Constants.MOVIES);
+            ArrayList<Movie> parcelableMovies = savedInstanceState.getParcelableArrayList(Constants.MOVIES);
             if (parcelableMovies != null) {
-                movies = Arrays.copyOf(parcelableMovies, parcelableMovies.length, Movie[].class);
+                movies = parcelableMovies;
                 movieAdapter.setMovies(movies);
             } else {
                 requestMovies();
@@ -82,33 +87,30 @@ public class MainActivity extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.movie, menu);
-        MenuItem menuItem = menu.findItem(R.id.action_category);
-        updateMenuTitle(menuItem);
         return true;
-    }
-
-    public void updateMenuTitle(MenuItem menuItem) {
-        if (category.equals(Constants.CATEGORY_POPULAR))
-            menuItem.setTitle(getString(R.string.action_top_rated));
-        else
-            menuItem.setTitle(getString(R.string.action_popular));
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArray(Constants.MOVIES, movies);
         outState.putString(Constants.CATEGORY, category);
+        outState.putParcelableArrayList(Constants.MOVIES, movies);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_category:
-                category = (category.equals(Constants.CATEGORY_POPULAR))
-                        ? Constants.CATEGORY_TOP_RATED
-                        : Constants.CATEGORY_POPULAR;
-                updateMenuTitle(item);
+            case R.id.action_popular:
+                category = Constants.CATEGORY_POPULAR;
+                requestMovies();
+                return true;
+            case R.id.action_top_rated:
+                category = Constants.CATEGORY_TOP_RATED;
+                requestMovies();
+                return true;
+            case R.id.action_favorite:
+                favoritesTaskLoader.loadData(getSupportLoaderManager());
+                return true;
             case R.id.action_refresh:
                 requestMovies();
                 return true;
@@ -127,30 +129,27 @@ public class MainActivity extends AppCompatActivity
         if (isOnline()) {
             Toast.makeText(this, "Requesting " + category + " movies.", Toast.LENGTH_LONG)
                     .show();
-//            new TheMovieTask().execute(category);
-            URL url = NetworkUtils.buildMovieUrl(category);
-            Bundle bundle = new Bundle();
-            bundle.putString(Constants.URL, url.toString());
-
-            LoaderManager loaderManager = getSupportLoaderManager();
-            Loader<String> loader = loaderManager.getLoader(Constants.LOADER_MOVIE);
-            if (loader == null)
-                loaderManager.initLoader(Constants.LOADER_MOVIE, bundle, this);
-            else
-                loaderManager.restartLoader(Constants.LOADER_MOVIE, bundle, this);
-            loadingProgress.setVisibility(View.VISIBLE);
+            movieTaskLoader.loadData(getSupportLoaderManager(), category);
         } else {
             Toast.makeText(this, getString(R.string.connection_error), Toast.LENGTH_LONG)
                     .show();
         }
     }
 
-    private void showMovieDataView() {
+    public void showProgressIndicator() {
+        loadingProgress.setVisibility(View.VISIBLE);
+    }
+
+    public void hideProgressIndicator() {
+        loadingProgress.setVisibility(View.INVISIBLE);
+    }
+
+    public void showMovieDataView() {
         errorMessageText.setVisibility(View.INVISIBLE);
         moviesView.setVisibility(View.VISIBLE);
     }
 
-    private void showErrorMessage() {
+    public void showErrorMessage() {
         moviesView.setVisibility(View.INVISIBLE);
         errorMessageText.setVisibility(View.VISIBLE);
     }
@@ -161,62 +160,4 @@ public class MainActivity extends AppCompatActivity
         detailIntent.putExtra(Constants.MOVIE, movie);
         startActivity(detailIntent);
     }
-
-    @Override
-    public Loader<String> onCreateLoader(int id, Bundle args) {
-        return new MovieTaskLoader(this, args);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<String> loader, String data) {
-        loadingProgress.setVisibility(View.INVISIBLE);
-        try {
-            movies = JsonUtils.getMovies(data);
-            showMovieDataView();
-            movieAdapter.setMovies(movies);
-        } catch (JSONException e) {
-            showErrorMessage();
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<String> loader) {
-
-    }
-
-//    class TheMovieTask extends AsyncTask<String, Void, Movie[]> {
-//        @Override
-//        protected void onPreExecute() {
-//            super.onPreExecute();
-//            loadingProgress.setVisibility(View.VISIBLE);
-//        }
-//
-//        @Override
-//        protected Movie[] doInBackground(String... params) {
-//            String category = params[0];
-//            Movie[] movies = null;
-//            try {
-//                URL requestUrl = NetworkUtils.buildUrl(category);
-//                String response = NetworkUtils.getResponseFromHttpUrl(requestUrl);
-//                movies = JsonUtils.getMovies(response);
-//            } catch (IOException | JSONException e) {
-//                e.printStackTrace();
-//            }
-//            return movies;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Movie[] moviesData) {
-//            loadingProgress.setVisibility(View.INVISIBLE);
-//            if (moviesData != null) {
-//                movies = moviesData;
-//                showMovieDataView();
-//                movieAdapter.setMovies(movies);
-//            } else {
-//                showErrorMessage();
-//            }
-//        }
-//
-//    }
 }

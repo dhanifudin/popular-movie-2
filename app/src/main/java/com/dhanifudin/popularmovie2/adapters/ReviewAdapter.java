@@ -10,15 +10,17 @@ import android.widget.TextView;
 import com.dhanifudin.popularmovie2.R;
 import com.dhanifudin.popularmovie2.model.Review;
 
+import java.util.List;
+
 /**
  * Created by dhanifudin on 7/31/17.
  */
 
 public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder> {
 
-    private Review[] reviews;
+    private List<Review> reviews;
 
-    public void setReviews(Review[] reviews) {
+    public void setReviews(List<Review> reviews) {
         this.reviews = reviews;
         notifyDataSetChanged();
     }
@@ -33,13 +35,13 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Review review = reviews[position];
+        Review review = reviews.get(position);
         holder.bind(review);
     }
 
     @Override
     public int getItemCount() {
-        return (reviews != null) ? reviews.length : 0;
+        return (reviews != null) ? reviews.size() : 0;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

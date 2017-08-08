@@ -1,4 +1,4 @@
-package com.dhanifudin.popularmovie2.utilities;
+package com.dhanifudin.popularmovie2.tasks;
 
 import android.content.Context;
 import android.os.Bundle;
@@ -6,6 +6,7 @@ import android.support.v4.content.AsyncTaskLoader;
 import android.text.TextUtils;
 
 import com.dhanifudin.popularmovie2.Constants;
+import com.dhanifudin.popularmovie2.utilities.NetworkUtils;
 
 import java.net.URL;
 
@@ -13,11 +14,11 @@ import java.net.URL;
  * Created by dhanifudin on 7/31/17.
  */
 
-public class MovieTaskLoader extends AsyncTaskLoader<String> {
+public class ApiTask extends AsyncTaskLoader<String> {
     private Bundle bundle;
     private String data;
 
-    public MovieTaskLoader(Context context, Bundle bundle) {
+    public ApiTask(Context context, Bundle bundle) {
         super(context);
         this.bundle = bundle;
     }

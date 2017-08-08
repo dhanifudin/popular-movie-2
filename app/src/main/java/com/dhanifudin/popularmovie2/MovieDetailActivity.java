@@ -2,8 +2,6 @@ package com.dhanifudin.popularmovie2;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,24 +17,16 @@ import com.dhanifudin.popularmovie2.adapters.TrailerAdapter;
 import com.dhanifudin.popularmovie2.model.Movie;
 import com.dhanifudin.popularmovie2.model.Review;
 import com.dhanifudin.popularmovie2.model.Trailer;
-import com.dhanifudin.popularmovie2.utilities.JsonUtils;
-import com.dhanifudin.popularmovie2.utilities.MovieTaskLoader;
-import com.dhanifudin.popularmovie2.utilities.NetworkUtils;
+import com.dhanifudin.popularmovie2.tasks.ReviewTaskLoader;
+import com.dhanifudin.popularmovie2.tasks.TrailerTaskLoader;
+import com.dhanifudin.popularmovie2.utilities.MovieUtils;
 import com.squareup.picasso.Picasso;
-
-import org.json.JSONException;
-
-import java.net.URL;
 
 import static com.dhanifudin.popularmovie2.Constants.MOVIE;
 
-public class MovieDetailActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<String>,
-        TrailerAdapter.TrailerAdapterOnClickHandler {
+public class MovieDetailActivity extends AppCompatActivity implements TrailerAdapter.TrailerAdapterOnClickHandler {
 
     private Movie movie;
-    private Trailer[] trailers;
-    private Review[] reviews;
 
     private ImageView backdropImage;
     private ImageView posterImage;
@@ -46,9 +36,15 @@ public class MovieDetailActivity extends AppCompatActivity
     private RatingBar movieRating;
     private TextView informationText;
     private TextView overviewText;
+    private Button favoriteButton;
 
     private TrailerAdapter trailerAdapter;
     private ReviewAdapter reviewAdapter;
+
+    private TrailerTaskLoader trailerTaskLoader;
+    private ReviewTaskLoader reviewTaskLoader;
+
+    private MovieRepository repository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,28 +72,55 @@ public class MovieDetailActivity extends AppCompatActivity
         trailerView.setLayoutManager(trailerLayoutManager);
         trailerView.setHasFixedSize(true);
         trailerAdapter = new TrailerAdapter(this);
-        trailerAdapter.setTrailers(trailers);
         trailerView.setAdapter(trailerAdapter);
 
         RecyclerView.LayoutManager reviewLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
         reviewView.setLayoutManager(reviewLayoutManager);
         reviewView.setHasFixedSize(true);
         reviewAdapter = new ReviewAdapter();
-        reviewAdapter.setReviews(reviews);;
         reviewView.setAdapter(reviewAdapter);
 
-        displayData();
-        loadTrailerData();
-        loadReviewData();
+        trailerTaskLoader = new TrailerTaskLoader(this, trailerAdapter);
+        reviewTaskLoader = new ReviewTaskLoader(this, reviewAdapter);
+        repository = new MovieRepository(getContentResolver());
 
-        Button favoriteButton = (Button) findViewById(R.id.button_favorite);
+        trailerTaskLoader.loadData(getSupportLoaderManager(), movie);
+        reviewTaskLoader.loadData(getSupportLoaderManager(), movie);
+        displayData();
+
+        favoriteButton = (Button) findViewById(R.id.button_favorite);
+        if (repository.isFavoriteMovie(movie)) {
+            toggleRemoveFavoriteButton();
+        } else {
+            toggleAddFavoriteButton();
+        }
+
         favoriteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MovieDetailActivity.this, "Add as favorite", Toast.LENGTH_LONG)
-                        .show();
+                if ("ADD".equals(favoriteButton.getTag())) {
+                    boolean success = repository.addFavoriteMovie(movie);
+                    if (success) {
+                        toggleRemoveFavoriteButton();
+                    }
+                } else {
+                    boolean success = repository.removeFavoriteMovie(movie);
+                    if (success) {
+                        toggleAddFavoriteButton();
+                    }
+                }
             }
         });
+    }
+
+    private void toggleRemoveFavoriteButton() {
+        favoriteButton.setText(getResources().getString(R.string.remove_as_favorite));
+        favoriteButton.setTag("REMOVE");
+    }
+
+    private void toggleAddFavoriteButton() {
+        favoriteButton.setText(getResources().getString(R.string.add_as_favorite));
+        favoriteButton.setTag("ADD");
     }
 
     @Override
@@ -106,41 +129,13 @@ public class MovieDetailActivity extends AppCompatActivity
         super.onSaveInstanceState(outState, outPersistentState);
     }
 
-    private void loadTrailerData() {
-        URL url = NetworkUtils.buildTrailerUrl(movie.getId());
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.URL, url.toString());
-
-        LoaderManager loaderManager = getSupportLoaderManager();
-        Loader<String> loader = loaderManager.getLoader(Constants.LOADER_TRAILER);
-
-        if (loader == null)
-            loaderManager.initLoader(Constants.LOADER_TRAILER, bundle, this);
-        else
-            loaderManager.restartLoader(Constants.LOADER_TRAILER, bundle, this);
-    }
-
-    private void loadReviewData() {
-        URL url = NetworkUtils.buildReviewUrl(movie.getId());
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.URL, url.toString());
-
-        LoaderManager loaderManager = getSupportLoaderManager();
-        Loader<String> loader = loaderManager.getLoader(Constants.LOADER_REVIEW);
-
-        if (loader == null)
-            loaderManager.initLoader(Constants.LOADER_REVIEW, bundle, this);
-        else
-            loaderManager.restartLoader(Constants.LOADER_REVIEW, bundle, this);
-    }
-
     private void displayData() {
         if (movie != null) {
             Picasso.with(this)
-                    .load(movie.getBackdropPath())
+                    .load(movie.getBackdropUrl())
                     .into(backdropImage);
             Picasso.with(this)
-                    .load(movie.getPosterPath())
+                    .load(movie.getPosterUrl())
                     .into(posterImage);
             titleText.setText(movie.getTitle());
             String originalTitle = String.format(
@@ -159,40 +154,6 @@ public class MovieDetailActivity extends AppCompatActivity
             informationText.setText(information);
             overviewText.setText(movie.getOverview());
         }
-    }
-
-    @Override
-    public Loader<String> onCreateLoader(int id, Bundle args) {
-        return new MovieTaskLoader(this, args);
-    }
-
-    @Override
-    public void onLoadFinished(Loader<String> loader, String data) {
-        switch (loader.getId()) {
-            case Constants.LOADER_TRAILER: {
-                try {
-                    trailers = JsonUtils.getTrailers(data);
-                    trailerAdapter.setTrailers(trailers);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                break;
-            }
-            case Constants.LOADER_REVIEW: {
-                try {
-                    reviews = JsonUtils.getReviews(data);
-                    reviewAdapter.setReviews(reviews);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                break;
-            }
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<String> loader) {
-
     }
 
     @Override

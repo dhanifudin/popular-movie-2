@@ -8,7 +8,7 @@ import android.os.Parcelable;
  */
 
 public class Movie implements Parcelable {
-    private int id;
+    private String id;
     private String title;
     private String originalTitle;
     private String overview;
@@ -16,19 +16,16 @@ public class Movie implements Parcelable {
     private String releaseDate;
     private int voteCount;
     private float voteAverage;
-    private float popularity;
     private String posterPath;
     private String backdropPath;
-    private boolean video;
-    private boolean adult;
 
     public Movie() {}
 
-    public int getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -88,44 +85,27 @@ public class Movie implements Parcelable {
         this.voteAverage = voteAverage;
     }
 
-    public float getPopularity() {
-        return popularity;
-    }
-
-    public void setPopularity(float popularity) {
-        this.popularity = popularity;
-    }
-
     public String getPosterPath() {
         return posterPath;
     }
 
+    public String getPosterUrl() {
+        return "http://image.tmdb.org/t/p/w185" + posterPath;
+    }
     public void setPosterPath(String posterPath) {
-        this.posterPath = "http://image.tmdb.org/t/p/w185" + posterPath;
+        this.posterPath = posterPath;
     }
 
     public String getBackdropPath() {
         return backdropPath;
     }
 
+    public String getBackdropUrl() {
+        return "http://image.tmdb.org/t/p/w342" + backdropPath;
+    }
+
     public void setBackdropPath(String backdropPath) {
-        this.backdropPath = "http://image.tmdb.org/t/p/w342" + backdropPath;
-    }
-
-    public boolean isVideo() {
-        return video;
-    }
-
-    public void setVideo(boolean video) {
-        this.video = video;
-    }
-
-    public boolean isAdult() {
-        return adult;
-    }
-
-    public void setAdult(boolean adult) {
-        this.adult = adult;
+        this.backdropPath = backdropPath;
     }
 
     @Override
@@ -135,7 +115,7 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(this.id);
+        dest.writeString(this.id);
         dest.writeString(this.title);
         dest.writeString(this.originalTitle);
         dest.writeString(this.overview);
@@ -143,15 +123,12 @@ public class Movie implements Parcelable {
         dest.writeString(this.releaseDate);
         dest.writeInt(this.voteCount);
         dest.writeFloat(this.voteAverage);
-        dest.writeFloat(this.popularity);
         dest.writeString(this.posterPath);
         dest.writeString(this.backdropPath);
-        dest.writeByte(this.video ? (byte) 1 : (byte) 0);
-        dest.writeByte(this.adult ? (byte) 1 : (byte) 0);
     }
 
     protected Movie(Parcel in) {
-        this.id = in.readInt();
+        this.id = in.readString();
         this.title = in.readString();
         this.originalTitle = in.readString();
         this.overview = in.readString();
@@ -159,11 +136,8 @@ public class Movie implements Parcelable {
         this.releaseDate = in.readString();
         this.voteCount = in.readInt();
         this.voteAverage = in.readFloat();
-        this.popularity = in.readFloat();
         this.posterPath = in.readString();
         this.backdropPath = in.readString();
-        this.video = in.readByte() != 0;
-        this.adult = in.readByte() != 0;
     }
 
     public static final Creator<Movie> CREATOR = new Creator<Movie>() {

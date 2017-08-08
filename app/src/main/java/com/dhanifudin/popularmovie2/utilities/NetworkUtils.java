@@ -44,22 +44,22 @@ public class NetworkUtils {
         return buildUrl(builtUri.toString());
     }
 
-    public static URL buildReviewUrl(int id) {
+    public static URL buildReviewUrl(String id) {
         Uri builtUri = Uri.parse(TMDB_BASE_URL).buildUpon()
                 .appendPath(PATH_VERSION)
                 .appendPath(PATH_RESOURCES)
-                .appendPath(String.valueOf(id))
+                .appendPath(id)
                 .appendPath("reviews")
                 .appendQueryParameter(PARAM_API_KEY, TMDB_API_KEY)
                 .build();
         return buildUrl(builtUri.toString());
     }
 
-    public static URL buildTrailerUrl(int id) {
+    public static URL buildTrailerUrl(String id) {
         Uri builtUri = Uri.parse(TMDB_BASE_URL).buildUpon()
                 .appendPath(PATH_VERSION)
                 .appendPath(PATH_RESOURCES)
-                .appendPath(String.valueOf(id))
+                .appendPath(id)
                 .appendPath("videos")
                 .appendQueryParameter(PARAM_API_KEY, TMDB_API_KEY)
                 .build();

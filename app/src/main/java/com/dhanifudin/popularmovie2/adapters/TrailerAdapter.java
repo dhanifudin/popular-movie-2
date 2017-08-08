@@ -15,13 +15,15 @@ import com.dhanifudin.popularmovie2.R;
 import com.dhanifudin.popularmovie2.model.Trailer;
 import com.squareup.picasso.Picasso;
 
+import java.util.List;
+
 /**
  * Created by dhanifudin on 7/31/17.
  */
 
 public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.ViewHolder> {
 
-    private Trailer[] trailers;
+    private List<Trailer> trailers;
 
     private final TrailerAdapterOnClickHandler clickHandler;
 
@@ -33,7 +35,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.ViewHold
         this.clickHandler = clickHandler;
     }
 
-    public void setTrailers(Trailer[] trailers) {
+    public void setTrailers(List<Trailer> trailers) {
         this.trailers = trailers;
         notifyDataSetChanged();
     }
@@ -48,13 +50,13 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.ViewHold
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        Trailer trailer = trailers[position];
+        Trailer trailer = trailers.get(position);
         holder.bind(trailer);
     }
 
     @Override
     public int getItemCount() {
-        return (trailers != null) ? trailers.length : 0;
+        return (trailers != null) ? trailers.size() : 0;
     }
 
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -63,7 +65,7 @@ public class TrailerAdapter extends RecyclerView.Adapter<TrailerAdapter.ViewHold
         TextView trailerName;
         Trailer trailer;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
             this.context = view.getContext();
             this.trailerImage = (ImageView) view.findViewById(R.id.trailer_image);
