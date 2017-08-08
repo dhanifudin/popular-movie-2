@@ -4,7 +4,7 @@
 - Clone this repo
 
 ```
-git clone https://github.com/dhanifudin/popular-movie-1.git
+git clone https://github.com/dhanifudin/popular-movie-2.git
 ```
 
 - Create themoviedb API
