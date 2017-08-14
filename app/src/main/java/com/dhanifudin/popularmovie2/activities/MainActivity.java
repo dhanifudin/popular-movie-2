@@ -1,17 +1,16 @@
-package com.dhanifudin.popularmovie2;
+package com.dhanifudin.popularmovie2.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Parcelable;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -20,23 +19,19 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.dhanifudin.popularmovie2.Constants;
+import com.dhanifudin.popularmovie2.R;
 import com.dhanifudin.popularmovie2.adapters.MovieAdapter;
 import com.dhanifudin.popularmovie2.model.Movie;
 import com.dhanifudin.popularmovie2.tasks.FavoritesTaskLoader;
 import com.dhanifudin.popularmovie2.tasks.MovieTaskLoader;
-import com.dhanifudin.popularmovie2.utilities.JsonUtils;
-import com.dhanifudin.popularmovie2.tasks.ApiTask;
-import com.dhanifudin.popularmovie2.utilities.NetworkUtils;
 
-import org.json.JSONException;
-
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements MovieAdapter.MovieAdapterOnClickHandler {
+
+    private static final String TAG = MainActivity.class.getSimpleName();
 
     private RecyclerView moviesView;
     private MovieAdapter movieAdapter;
@@ -44,25 +39,25 @@ public class MainActivity extends AppCompatActivity
     private TextView errorMessageText;
     private ProgressBar loadingProgress;
 
-    private ArrayList<Movie> movies;
-
-    private String category;
+    private String category = Constants.CATEGORY_POPULAR;
     private MovieTaskLoader movieTaskLoader;
     private FavoritesTaskLoader favoritesTaskLoader;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.i(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         errorMessageText = (TextView) findViewById(R.id.text_error);
         loadingProgress = (ProgressBar) findViewById(R.id.loading_progress);
         moviesView = (RecyclerView) findViewById(R.id.movies_view);
 
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2, LinearLayoutManager.VERTICAL, false);
+        int orientation = getResources().getConfiguration().orientation;
+        int column = (orientation == Configuration.ORIENTATION_PORTRAIT) ? 2 : 3;
+        GridLayoutManager layoutManager = new GridLayoutManager(this, column);
         moviesView.setLayoutManager(layoutManager);
         moviesView.setHasFixedSize(true);
         movieAdapter = new MovieAdapter(this);
-        movieAdapter.setMovies(movies);
         moviesView.setAdapter(movieAdapter);
 
         movieTaskLoader = new MovieTaskLoader(this, movieAdapter);
@@ -70,16 +65,7 @@ public class MainActivity extends AppCompatActivity
 
         if (savedInstanceState == null) {
             category = Constants.CATEGORY_POPULAR;
-            requestMovies();
-        } else {
-            category = savedInstanceState.getString(Constants.CATEGORY);
-            ArrayList<Movie> parcelableMovies = savedInstanceState.getParcelableArrayList(Constants.MOVIES);
-            if (parcelableMovies != null) {
-                movies = parcelableMovies;
-                movieAdapter.setMovies(movies);
-            } else {
-                requestMovies();
-            }
+            requestMovies(category);
         }
     }
 
@@ -92,29 +78,37 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG, "onSaveInstanceState");
         outState.putString(Constants.CATEGORY, category);
-        outState.putParcelableArrayList(Constants.MOVIES, movies);
+        outState.putParcelableArrayList(Constants.MOVIES, movieAdapter.getMovies());
         super.onSaveInstanceState(outState);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_popular:
-                category = Constants.CATEGORY_POPULAR;
-                requestMovies();
-                return true;
-            case R.id.action_top_rated:
-                category = Constants.CATEGORY_TOP_RATED;
-                requestMovies();
-                return true;
-            case R.id.action_favorite:
-                favoritesTaskLoader.loadData(getSupportLoaderManager());
-                return true;
-            case R.id.action_refresh:
-                requestMovies();
-                return true;
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        Log.i(TAG, "onRestoreInstanceState");
+        super.onRestoreInstanceState(savedInstanceState);
+        if (savedInstanceState != null) {
+            ArrayList<Movie> movies = savedInstanceState.getParcelableArrayList(Constants.MOVIES);
+            movieAdapter.setMovies(movies);
+            category = savedInstanceState.getString(Constants.CATEGORY);
+        } else {
+            Log.i(TAG, "Requesting movies");
+            requestMovies(category);
         }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_popular) {
+            category = Constants.CATEGORY_POPULAR;
+        } else if (id == R.id.action_top_rated) {
+            category = Constants.CATEGORY_TOP_RATED;
+        } else if (id == R.id.action_favorite) {
+            category = Constants.CATEGORY_FAVORITE;
+        }
+        requestMovies(category);
         return super.onOptionsItemSelected(item);
     }
 
@@ -125,11 +119,15 @@ public class MainActivity extends AppCompatActivity
         return info != null && info.isConnectedOrConnecting();
     }
 
-    private void requestMovies() {
+    private void requestMovies(String category) {
         if (isOnline()) {
             Toast.makeText(this, "Requesting " + category + " movies.", Toast.LENGTH_LONG)
                     .show();
-            movieTaskLoader.loadData(getSupportLoaderManager(), category);
+            if (!Constants.CATEGORY_FAVORITE.equals(category)) {
+                movieTaskLoader.loadData(getSupportLoaderManager(), category);
+            } else {
+                favoritesTaskLoader.loadData(getSupportLoaderManager());
+            }
         } else {
             Toast.makeText(this, getString(R.string.connection_error), Toast.LENGTH_LONG)
                     .show();

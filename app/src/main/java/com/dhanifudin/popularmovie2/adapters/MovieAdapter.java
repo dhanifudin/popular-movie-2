@@ -12,6 +12,7 @@ import com.dhanifudin.popularmovie2.R;
 import com.dhanifudin.popularmovie2.model.Movie;
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
-    private List<Movie> movies;
+    private ArrayList<Movie> movies;
 
     private final MovieAdapterOnClickHandler clickHandler;
 
@@ -32,7 +33,11 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         this.clickHandler = clickHandler;
     }
 
-    public void setMovies(List<Movie> movies) {
+    public ArrayList<Movie> getMovies() {
+        return movies;
+    }
+
+    public void setMovies(ArrayList<Movie> movies) {
         this.movies = movies;
         notifyDataSetChanged();
     }

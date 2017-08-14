@@ -1,4 +1,4 @@
-package com.dhanifudin.popularmovie2;
+package com.dhanifudin.popularmovie2.activities;
 
 import android.os.Bundle;
 import android.os.PersistableBundle;
@@ -10,16 +10,15 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.dhanifudin.popularmovie2.utilities.MovieRepository;
+import com.dhanifudin.popularmovie2.R;
 import com.dhanifudin.popularmovie2.adapters.ReviewAdapter;
 import com.dhanifudin.popularmovie2.adapters.TrailerAdapter;
 import com.dhanifudin.popularmovie2.model.Movie;
-import com.dhanifudin.popularmovie2.model.Review;
 import com.dhanifudin.popularmovie2.model.Trailer;
 import com.dhanifudin.popularmovie2.tasks.ReviewTaskLoader;
 import com.dhanifudin.popularmovie2.tasks.TrailerTaskLoader;
-import com.dhanifudin.popularmovie2.utilities.MovieUtils;
 import com.squareup.picasso.Picasso;
 
 import static com.dhanifudin.popularmovie2.Constants.MOVIE;

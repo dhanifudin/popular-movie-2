@@ -6,7 +6,7 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 
 import com.dhanifudin.popularmovie2.Constants;
-import com.dhanifudin.popularmovie2.MainActivity;
+import com.dhanifudin.popularmovie2.activities.MainActivity;
 import com.dhanifudin.popularmovie2.adapters.MovieAdapter;
 import com.dhanifudin.popularmovie2.model.Movie;
 
@@ -43,7 +43,7 @@ public class FavoritesTaskLoader implements LoaderManager.LoaderCallbacks<Cursor
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        List<Movie> movies = new ArrayList<>();
+        ArrayList<Movie> movies = new ArrayList<>();
         if (data != null) {
             while(data.moveToNext()) {
                 Movie movie = new Movie();

@@ -41,8 +41,8 @@ public class JsonUtils {
     static final String REVIEW_CONTENT = "content";
     static final String REVIEW_URL = "url";
 
-    public static List<Movie> getMovies(String json) throws JSONException {
-        List<Movie> movies = null;
+    public static ArrayList<Movie> getMovies(String json) throws JSONException {
+        ArrayList<Movie> movies = null;
         JSONObject moviesJson = new JSONObject(json);
         if (moviesJson.has(RESULTS)) {
             JSONArray moviesArray = moviesJson.getJSONArray(RESULTS);

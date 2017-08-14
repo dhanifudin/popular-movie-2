@@ -10,6 +10,7 @@ public class Constants {
     public static final String CATEGORY = "category";
     public static final String CATEGORY_POPULAR = "popular";
     public static final String CATEGORY_TOP_RATED = "top_rated";
+    public static final String CATEGORY_FAVORITE = "favorite";
 
     public static final String URL = "url";
 

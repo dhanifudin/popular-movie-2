@@ -1,12 +1,11 @@
 package com.dhanifudin.popularmovie2.tasks;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 
 import com.dhanifudin.popularmovie2.Constants;
-import com.dhanifudin.popularmovie2.MainActivity;
+import com.dhanifudin.popularmovie2.activities.MainActivity;
 import com.dhanifudin.popularmovie2.adapters.MovieAdapter;
 import com.dhanifudin.popularmovie2.model.Movie;
 import com.dhanifudin.popularmovie2.utilities.JsonUtils;
@@ -15,6 +14,7 @@ import com.dhanifudin.popularmovie2.utilities.NetworkUtils;
 import org.json.JSONException;
 
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +52,7 @@ public class MovieTaskLoader implements LoaderManager.LoaderCallbacks<String> {
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         try {
-            List<Movie> movies = JsonUtils.getMovies(data);
+            ArrayList<Movie> movies = JsonUtils.getMovies(data);
             activity.showMovieDataView();
             adapter.setMovies(movies);
         } catch (JSONException e) {

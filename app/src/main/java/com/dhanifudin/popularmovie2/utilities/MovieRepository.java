@@ -1,4 +1,4 @@
-package com.dhanifudin.popularmovie2;
+package com.dhanifudin.popularmovie2.utilities;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
