@@ -15,7 +15,7 @@ import java.util.Scanner;
  * Created by dhanifudin on 7/4/17.
  */
 
-public class NetworkUtils {
+public final class NetworkUtils {
 
     private final static String TMDB_API_KEY = BuildConfig.THEMOVIEDB_API_KEY;
     private final static String TMDB_BASE_URL = "http://api.themoviedb.org";
@@ -23,6 +23,8 @@ public class NetworkUtils {
     private final static String PATH_VERSION = "3";
     private final static String PATH_RESOURCES = "movie";
     private final static String PARAM_API_KEY = "api_key";
+
+    private NetworkUtils() {}
 
     private static URL buildUrl(String uri) {
         URL url = null;
