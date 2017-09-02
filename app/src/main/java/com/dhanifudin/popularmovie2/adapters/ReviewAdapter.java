@@ -12,6 +12,9 @@ import com.dhanifudin.popularmovie2.model.Review;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 /**
  * Created by dhanifudin on 7/31/17.
  */
@@ -46,13 +49,12 @@ public class ReviewAdapter extends RecyclerView.Adapter<ReviewAdapter.ViewHolder
 
     class ViewHolder extends RecyclerView.ViewHolder {
 
-        TextView authorText;
-        TextView reviewText;
+        @BindView(R.id.author_text) TextView authorText;
+        @BindView(R.id.review_text) TextView reviewText;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
-            this.authorText = (TextView) view.findViewById(R.id.author_text);
-            this.reviewText = (TextView) view.findViewById(R.id.review_text);
+            ButterKnife.bind(this, view);
         }
 
         void bind(Review review) {
